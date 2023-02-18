@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "nodemon --signal SIGINT app.js"
   },
   "keywords": [],
@@ -16,5 +16,9 @@
     "mongodb-memory-server": "^8.11.4",
     "mongoose": "^6.9.2",
     "nodemon": "^2.0.20"
+  },
+  "devDependencies": {
+    "jest": "^29.4.3",
+    "jest-mock-console": "^2.0.0"
   }
 }

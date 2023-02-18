@@ -43,7 +43,13 @@ async function likeComment(req, res) {
         });
         await like.save();
 
-        await Comment.updateOne({ comment_id }, { $inc: { like_count: 1 } });
+        await Comment.updateOne({
+            comment_id
+        }, {
+            $inc: {
+                like_count: 1
+            }
+        });
 
         res.status(200).json({
             message: 'Comment liked successfully'
@@ -51,7 +57,7 @@ async function likeComment(req, res) {
     } catch (error) {
         console.error(error);
         res.status(500).json({
-            error: 'Something went wrong'
+            "error": "Server error"
         });
     }
 };
@@ -94,7 +100,13 @@ async function unlikeComment(req, res) {
 
         // Delete the like for the comment
         await existingLike.delete();
-        await Comment.updateOne({ comment_id }, { $inc: { like_count: -1 } });
+        await Comment.updateOne({
+            comment_id
+        }, {
+            $inc: {
+                like_count: -1
+            }
+        });
 
         res.status(200).json({
             message: 'Comment unliked successfully'
@@ -102,7 +114,7 @@ async function unlikeComment(req, res) {
     } catch (error) {
         console.error(error);
         res.status(500).json({
-            error: 'Something went wrong'
+            "error": "Server error"
         });
     }
 };
@@ -140,8 +152,8 @@ async function getLikeCount(req, res) {
         });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({
-            message: 'Server error'
+        res.status(500).json({
+            "error": "Server error"
         });
     }
 };

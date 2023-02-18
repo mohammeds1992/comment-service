@@ -50,7 +50,9 @@ async function createUser(req, res) {
         res.status(201).json(result);
     } catch (error) {
         console.error(error);
-        res.status(500).send('Server error');
+        res.status(500).json({
+            "error": "Server error"
+        });
     }
 }
 
@@ -68,7 +70,9 @@ async function getUser(req, res) {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).send('Server error');
+        res.status(500).json({
+            "error": "Server error"
+        });
     }
 }
 

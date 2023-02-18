@@ -14,7 +14,6 @@ async function createComment(req, res) {
             user_id
         } = req.body;
 
-
         // Check if title and description are not empty
         if (!title || !description) {
             return res.status(400).json({
@@ -22,10 +21,15 @@ async function createComment(req, res) {
             });
         }
 
-        // Check if title and description are not too long
-        if (title.length > 100 || description.length > 1000) {
+        if (title.length > 100) {
             return res.status(400).json({
-                message: "Title should be less than 100 characters and description should be less than 1000 characters"
+                message: "Title should be less than 100 characters"
+            });
+        }
+
+        if (description.length > 1000) {
+            return res.status(400).json({
+                message: "Description should be less than 1000 characters"
             });
         }
 
@@ -45,10 +49,9 @@ async function createComment(req, res) {
             return;
         }
 
+
         const date = new Date();
         const _id = getNextCommentId();
-
-
 
         const comment = new Comment({
             comment_id: _id,
@@ -67,7 +70,7 @@ async function createComment(req, res) {
     } catch (err) {
         console.error(err);
         res.status(500).json({
-            message: "Server error"
+            "error": "Server error"
         });
     }
 };
@@ -89,6 +92,25 @@ const updateComment = async (req, res) => {
             });
         }
 
+        // Check if title and description are not empty
+        if (!title || !description) {
+            return res.status(400).json({
+                message: "Title and description are mandatory"
+            });
+        }
+
+        if (title.length > 100) {
+            return res.status(400).json({
+                message: "Title should be less than 100 characters"
+            });
+        }
+
+        if (description.length > 1000) {
+            return res.status(400).json({
+                message: "Description should be less than 1000 characters"
+            });
+        }
+
         comment.title = title;
         comment.description = description;
         comment.last_modified = Date.now();
@@ -100,7 +122,7 @@ const updateComment = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({
-            message: "Server error"
+            "error": "Server error"
         });
     }
 };
@@ -125,7 +147,7 @@ const deleteComment = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({
-            message: "Server error"
+            "error": "Server error"
         });
     }
 };
@@ -144,7 +166,7 @@ async function getComment(req, res) {
     } catch (error) {
         console.error(error);
         res.status(500).json({
-            message: "Server error"
+            "error": "Server error"
         });
     }
 }
