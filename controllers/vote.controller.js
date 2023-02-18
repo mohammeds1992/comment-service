@@ -1,35 +1,38 @@
 const Vote = require('../models/vote.model');
 const Comment = require('../models/comment.model');
+const User = require('../models/user.model');
 
 async function vote(req, res) {
     try {
         const {
-            comment_id,
             user_id,
             personality_type,
             personality_type_tag
         } = req.body;
 
-        const user = await User.findById(id);
+        const {
+            comment_id
+        } = req.params;
+
+        const user = await User.getUserById(user_id);
         if (!user) {
-            return res.status(400).json({
-                message: "User not found"
+            res.status(404).json({
+                message: `User with id ${user_id} not found`,
             });
+            return;
         }
 
-        const comment = await Comment.findById(comment_id);
-
+        const comment = await Comment.getCommentById(comment_id);
         if (!comment) {
             return res.status(404).json({
-                message: 'Comment not found'
+                message: "Comment not found"
             });
         }
 
         // check if personality_type is valid
-        const validPersonalityTypes = ['MBTI', 'Enneagram', 'Zodiac'];
-        if (!validPersonalityTypes.includes(personality_type)) {
+        if (!comment.personality_types.includes(personality_type)) {
             return res.status(400).json({
-                message: 'Invalid personality type'
+                message: 'Personality type not valid for this comment'
             });
         }
 
@@ -49,18 +52,11 @@ async function vote(req, res) {
             });
         }
 
-
-        if (!comment.personality_type.includes(personality_type)) {
-            return res.status(400).json({
-                message: 'Personality type not valid for this comment'
-            });
-        }
-
         // Check if user has already voted for this comment and personality type
         const existingVote = await Vote.findOne({
-            comment_id,
-            user_id,
-            personality_type
+            comment_id: comment._id,
+            user_id: user._id,
+            personality_type: personality_type
         });
 
         if (existingVote) {
@@ -72,8 +68,8 @@ async function vote(req, res) {
         }
 
         const count = await Vote.count({
-            comment_id,
-            user_id
+            comment_id: comment._id,
+            user_id: user._id
         });
 
         if (count >= 3) {
@@ -84,10 +80,10 @@ async function vote(req, res) {
 
         // Create new vote
         const newVote = new Vote({
-            comment_id,
-            user_id,
-            personality_type,
-            personality_type_tag
+            comment_id: comment._id,
+            user_id: user._id,
+            personality_type: personality_type,
+            personality_type_tag: personality_type_tag
         });
         await newVote.save();
 

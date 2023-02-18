@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    id: {
+    user_id: {
         type: Number,
         required: true
     },
@@ -47,9 +47,9 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-userSchema.statics.getUserById = async function(id) {
+userSchema.statics.getUserById = async function(user_id) {
     return await this.findOne({
-        id
+        user_id: user_id
     });;
 };
 

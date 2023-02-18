@@ -8,25 +8,28 @@ async function likeComment(req, res) {
             user_id
         } = req.body;
         const {
-            id
+            comment_id
         } = req.params;
         const user = await User.getUserById(user_id);
         if (!user) {
-            return res.status(400).json({
-                message: "User not found"
+            res.status(404).json({
+                message: `User with id ${user_id} not found`,
             });
+            return;
         }
 
-        const comment = await Comment.getCommentById(id);
-
+        const comment = await Comment.getCommentById(comment_id);
         if (!comment) {
             return res.status(404).json({
-                message: 'Comment not found'
+                message: `Comment with id ${comment_id} not found`,
             });
         }
 
         // Check if the user has already liked the comment
-        const existingLike = await Like.findOne({ comment_id: comment._id, user_id: user._id });
+        const existingLike = await Like.findOne({
+            comment_id: comment._id,
+            user_id: user._id
+        });
         if (existingLike) {
             return res.status(400).json({
                 error: 'You have already liked this comment'
@@ -34,8 +37,13 @@ async function likeComment(req, res) {
         }
 
         // Create a new like for the comment
-        const like = new Like({ comment_id: comment._id, user_id: user._id });
+        const like = new Like({
+            comment_id: comment._id,
+            user_id: user._id
+        });
         await like.save();
+
+        await Comment.updateOne({ comment_id }, { $inc: { like_count: 1 } });
 
         res.status(200).json({
             message: 'Comment liked successfully'
@@ -54,25 +62,29 @@ async function unlikeComment(req, res) {
             user_id
         } = req.body;
         const {
-            id
+            comment_id
         } = req.params;
         const user = await User.getUserById(user_id);
         if (!user) {
-            return res.status(400).json({
-                message: "User not found"
+            res.status(404).json({
+                message: `User with id ${user_id} not found`,
             });
+            return;
         }
 
-        const comment = await Comment.getCommentById(id);
+        const comment = await Comment.getCommentById(comment_id);
 
         if (!comment) {
             return res.status(404).json({
-                message: 'Comment not found'
+                message: `Comment with id ${comment_id} not found`,
             });
         }
 
         // Check if the user has liked the comment
-         const existingLike = await Like.findOne({ comment_id: comment._id, user_id: user._id });
+        const existingLike = await Like.findOne({
+            comment_id: comment._id,
+            user_id: user._id
+        });
 
         if (!existingLike) {
             return res.status(400).json({
@@ -82,6 +94,7 @@ async function unlikeComment(req, res) {
 
         // Delete the like for the comment
         await existingLike.delete();
+        await Comment.updateOne({ comment_id }, { $inc: { like_count: -1 } });
 
         res.status(200).json({
             message: 'Comment unliked successfully'
@@ -95,26 +108,42 @@ async function unlikeComment(req, res) {
 };
 
 async function getLikeCount(req, res) {
-  try {
-    const commentId = req.params.id;
+    try {
+        const comment_id = req.params.comment_id;
+        // Check if the comment exists
+        const comment = await Comment.getCommentById(comment_id);
 
-    // Check if the comment exists
-    const comment = await Comment.getCommentById(commentId);
-    if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
+        if (!comment) {
+            return res.status(404).json({
+                message: `Comment with id ${comment_id} not found`,
+            });
+        }
+
+        // Get the count of likes for the comment
+        const likeCount = await Like.aggregate([{
+                $match: {
+                    comment_id: comment._id
+                }
+            },
+            {
+                $group: {
+                    _id: '$comment_id',
+                    count: {
+                        $sum: 1
+                    }
+                }
+            },
+        ]);
+
+        return res.status(200).json({
+            count: likeCount[0]?.count || 0
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: 'Server error'
+        });
     }
-
-    // Get the count of likes for the comment
-    const likeCount = await Like.aggregate([
-      { $match: { comment_id: comment._id } },
-      { $group: { _id: '$comment_id', count: { $sum: 1 } } },
-    ]);
-
-    return res.status(200).json({ count: likeCount[0]?.count || 0 });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Server error' });
-  }
 };
 
 module.exports = {

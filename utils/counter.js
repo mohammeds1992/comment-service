@@ -10,5 +10,6 @@ function getNextCommentId() {
 }
 
 module.exports = {
-    getNextUserId, getNextCommentId
+    getNextUserId,
+    getNextCommentId
 };
